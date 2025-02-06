@@ -1,0 +1,56 @@
+import React, { useState, useEffect } from 'react';
+import { ethers } from 'ethers';
+import Loot from './artifacts/contracts/Loot.sol/Loot.json';
+
+const LOOT_CONTRACT_ADDRESS = 'YOUR_CONTRACT_ADDRESS_HERE';
+
+function App() {
+    const [lootItems, setLootItems] = useState([]);
+    const [provider, setProvider] = useState(null);
+    const [signer, setSigner] = useState(null);
+    const [contract, setContract] = useState(null);
+
+    useEffect(() => {
+        const init = async () => {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            const contract = new ethers.Contract(LOOT_CONTRACT_ADDRESS, Loot.abi, signer);
+            setProvider(provider);
+            setSigner(signer);
+            setContract(contract);
+        };
+        init();
+    }, []);
+
+    const mintLoot = async () => {
+        const loot = "Example Loot Item"; // Replace with actual loot generation logic
+        const tx = await contract.mint(loot);
+        await tx.wait();
+        fetchLootItems();
+    };
+
+    const fetchLootItems = async () => {
+        const items = [];
+        const totalSupply = await contract.nextTokenId();
+        for (let i = 0; i < totalSupply; i++) {
+            const loot = await contract.getLoot(i);
+            items.push({ id: i, loot });
+        }
+        setLootItems(items);
+    };
+
+    return (
+        <div>
+            <h1>Loot Game</h1>
+            <button onClick={mintLoot}>Mint Loot</button>
+            <h2>Your Loot Items:</h2>
+            <ul>
+                {lootItems.map(item => (
+                    <li key={item.id}>{item.id}: {item.loot}</li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
+export default App;
