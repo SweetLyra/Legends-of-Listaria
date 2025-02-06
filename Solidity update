@@ -1,0 +1,21 @@
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract Loot is ERC721, Ownable {
+    uint256 public nextTokenId;
+    mapping(uint256 => string) public lootItems;
+
+    constructor() ERC721("Loot", "LOOT") {}
+
+    function mint(string memory loot) external onlyOwner {
+        lootItems[nextTokenId] = loot;
+        _safeMint(msg.sender, nextTokenId);
+        nextTokenId++;
+    }
+
+    function getLoot(uint256 tokenId) external view returns (string memory) {
+        return lootItems[tokenId];
+    }
+}
